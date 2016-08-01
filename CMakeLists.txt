@@ -14,21 +14,35 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${out_dir})
 
 SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++11" )
 
-set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
-set(BOOST_ROOT "../external/boost")
 
+if (WIN32)
+set(BOOST_ROOT d:/local/boost_1_61_0)
 find_package(Boost 1.50.0
               COMPONENTS
               system
               filesystem
               thread
               program_options
-              iostreams
-              serialization
+	          iostreams
+	          serialization
+              wserialization
+	 	      zlib
+            REQUIRED)
+else ()
+    find_package(Boost 1.50.0
+              COMPONENTS
+              system
+              filesystem
+              thread
+              program_options
+	          iostreams
+	          serialization
               wserialization
             REQUIRED)
+endif ()
 
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories("include")

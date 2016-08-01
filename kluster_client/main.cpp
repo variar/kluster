@@ -1,5 +1,7 @@
 #include <boost/program_options.hpp>
 
+#include <iostream>
+
 #include "kluster_client.h"
 
 namespace po = boost::program_options;

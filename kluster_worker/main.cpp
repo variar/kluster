@@ -1,4 +1,3 @@
-#include <nn.h>
 #include <nano_socket.h>
 #include <messages.h>
 
@@ -12,6 +11,8 @@
 #include <boost/iostreams/copy.hpp>
 
 #include <process.hpp>
+
+#include <iostream>
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -37,7 +38,7 @@ public:
 
       if (stream.is_open())
       {
-        stream.write(&file.data[0], file.data.size());
+		std::copy(file.data.begin(), file.data.end(), std::ostreambuf_iterator<char>(stream));
         stream.close();
         std::wcout << "Saved file to " << path.wstring() << std::endl;
       }
@@ -155,7 +156,12 @@ public:
               std::copy(bytes, bytes+n, std::back_inserter(fileData.data));
             }};
             process.get_exit_status();
+
+			std::wcout << "Prepared results " << fileData.name << ", size " << fileData.data.size() << std::endl;
+
             response.taskResults.push_back(fileData);
+
+
             /*fs::ifstream stream {path, std::ios::in | std::ios::binary};
             if (stream.is_open())
             {

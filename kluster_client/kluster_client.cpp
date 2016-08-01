@@ -10,6 +10,8 @@
 
 #include <messages.h>
 
+#include <iostream>
+
 using namespace kluster::transport;
 using namespace kluster::messages;
 
@@ -38,11 +40,11 @@ namespace
         FileData fileData;
         fileData.name = entryPath.filename().wstring();
 
-        fs::ifstream stream {path, std::ios::in | std::ios::binary};
+        fs::ifstream stream {entryPath, std::ios::in | std::ios::binary};
         if (stream.is_open())
         {
-          fileData.data.resize(size);
-          stream.read(&fileData.data[0], size);
+          fileData.data.reserve(size);
+		  std::copy(std::istreambuf_iterator<char>{stream}, std::istreambuf_iterator<char>{}, std::back_inserter(fileData.data));
           totalSize += size;
         }
 
@@ -99,14 +101,14 @@ void KlusterClient::WaitForResults() throw()
       message.GetMessageData(response);
       for (const auto& resultFile : response.taskResults)
       {
-        std::wcout << "Got result file " << resultFile.name << std::endl;
+        std::wcout << "Got result file " << resultFile.name << ", size " << resultFile.data.size() << std::endl;
         fs::path path {resultFile.name};
         fs::ofstream stream {path, std::ios::out | std::ios::binary};
         if (stream.is_open())
         {
-          stream.write(&resultFile.data[0], resultFile.data.size());
+		  std::copy(resultFile.data.begin(), resultFile.data.end(), std::ostreambuf_iterator<char>(stream));
+		  stream.close();
         }
-        stream.close();
       }
     }
 

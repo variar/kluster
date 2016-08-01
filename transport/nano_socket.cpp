@@ -1,10 +1,13 @@
 #include "nano_socket.h"
+
 #include <nn.h>
 #include <pubsub.h>
 
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filter/zlib.hpp>
+
+#include <iostream>
 
 namespace ios = boost::iostreams;
 

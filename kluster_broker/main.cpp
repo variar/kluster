@@ -1,5 +1,3 @@
-#include <nn.h>
-
 #include <nano_socket.h>
 #include <messages.h>
 
@@ -8,6 +6,7 @@
 #include <pubsub.h>
 
 #include <sstream>
+#include <iostream>
 
 #include <boost/program_options.hpp>
 
