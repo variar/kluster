@@ -7,6 +7,7 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/base_object.hpp>
 
 namespace kluster
 {
@@ -43,7 +44,9 @@ namespace kluster
         JobResponse,
         TaskRequest,
         TaskResponse,
-        EndJob
+        EndJob,
+		CancelJob,
+		UpdateWorker,
       };
     }
 
@@ -136,7 +139,7 @@ namespace kluster
 
     struct TypedMessage
     {
-      TypedMessage(message_type::Enum type_ = message_type::Unknown)
+      TypedMessage(message_type::Enum type_)
        : type {type_} {}
 
       const message_type::Enum type;
@@ -144,23 +147,39 @@ namespace kluster
 
     typedef std::wstring JobId;
 
-    struct JobRequestMessage : public TypedMessage
-    {
-      JobRequestMessage() : TypedMessage (message_type::JobRequest) {}
+	struct JobMessage : public TypedMessage
+	{
+		JobMessage(message_type::Enum type_) : TypedMessage(type_)
+		{}
 
-      JobId jobId;
+		JobId jobId;
+
+	private:
+		friend class boost::serialization::access;
+		template<class Archive>
+		void serialize(Archive & ar, const unsigned int version)
+		{
+			ar & jobId;
+		}
+	};
+
+    struct JobRequestMessage : public JobMessage
+    {
+      JobRequestMessage() : JobMessage(message_type::JobRequest) {}
+
       FilesCollection jobFiles;
       FilesCollection taskFiles;
 
       std::string cmdLine;
-
       uint32_t timeout;
+
     private:
       friend class boost::serialization::access;
       template<class Archive>
       void serialize(Archive & ar, const unsigned int version)
       {
-          ar & jobId;
+		  ar & boost::serialization::base_object<JobMessage>(*this);
+
           ar & jobFiles;
           ar & taskFiles;
           ar & cmdLine;
@@ -168,64 +187,72 @@ namespace kluster
       }
     };
 
-    struct JobResponseMessage : public TypedMessage
+    struct JobResponseMessage : public JobMessage
     {
-      JobResponseMessage() : TypedMessage (message_type::JobResponse) {}
-
-      JobId jobId;
+      JobResponseMessage() : JobMessage(message_type::JobResponse) {}
       FilesCollection taskResults;
-
       std::string error;
+
     private:
       friend class boost::serialization::access;
       template<class Archive>
       void serialize(Archive & ar, const unsigned int version)
       {
-          ar & jobId;
+		  ar & boost::serialization::base_object<JobMessage>(*this);
+
           ar & taskResults;
           ar & error;
       }
     };
 
-    struct EndJobMessage : public TypedMessage
+    struct EndJobMessage : public JobMessage
     {
-      EndJobMessage() : TypedMessage (message_type::EndJob) {}
-
-      JobId jobId;
+      EndJobMessage() : JobMessage(message_type::EndJob) {}
 
     private:
       friend class boost::serialization::access;
       template<class Archive>
       void serialize(Archive & ar, const unsigned int version)
       {
-          ar & jobId;
+		  ar & boost::serialization::base_object<JobMessage>(*this);
       }
     };
 
-    struct TaskRequestMessage : public TypedMessage
+	struct CancelJobMessage : public JobMessage
+	{
+		CancelJobMessage() : JobMessage(message_type::CancelJob) {}
+
+	private:
+		friend class boost::serialization::access;
+		template<class Archive>
+		void serialize(Archive & ar, const unsigned int version)
+		{
+			ar & boost::serialization::base_object<JobMessage>(*this);
+		}
+	};
+
+    struct TaskRequestMessage : public JobMessage
     {
-      TaskRequestMessage() : TypedMessage (message_type::TaskRequest) {}
+      TaskRequestMessage() : JobMessage(message_type::TaskRequest) {}
 
-      JobId jobId;
       FileData taskFile;
-
       uint32_t timeout;
+
     private:
       friend class boost::serialization::access;
       template<class Archive>
       void serialize(Archive & ar, const unsigned int version)
       {
-          ar & jobId;
+		  ar & boost::serialization::base_object<JobMessage>(*this);
           ar & taskFile;
           ar & timeout;
       }
     };
 
-    struct TaskResponseMessage : public TypedMessage
+    struct TaskResponseMessage : public JobMessage
     {
-      TaskResponseMessage() : TypedMessage (message_type::TaskResponse) {}
+      TaskResponseMessage() : JobMessage(message_type::TaskResponse) {}
 
-      JobId jobId;
       FilesCollection taskResults;
       std::string error;
 
@@ -234,11 +261,27 @@ namespace kluster
       template<class Archive>
       void serialize(Archive & ar, const unsigned int version)
       {
-          ar & jobId;
+		  ar & boost::serialization::base_object<JobMessage>(*this);
           ar & taskResults;
           ar & error;
       }
     };
+
+	struct UpdateWorkerMessage : public TypedMessage
+	{
+		UpdateWorkerMessage() : TypedMessage(message_type::UpdateWorker) {}
+
+		FileData workerFile;
+		
+	private:
+		friend class boost::serialization::access;
+		template<class Archive>
+		void serialize(Archive & ar, const unsigned int version)
+		{
+			ar & workerFile;
+		}
+	};
+	
 
     NanoMessage CreateWorkerPingMessage(const NodeId& from);
     NanoMessage CreateWorkerPongMessage(const NodeId& from);

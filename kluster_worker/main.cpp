@@ -137,7 +137,7 @@ public:
         if (message.header.type == message_type::TaskRequest)
         {
           TaskRequestMessage request;
-          message.GetMessageData<TaskRequestMessage>(request);
+          message.GetMessageData(request);
           std::wcout << "Got task " << request.taskFile.name << std::endl;
 
           TaskResponseMessage response;

@@ -65,7 +65,7 @@ public:
         {
 
           JobRequestMessage jobRequest;
-          if (message.GetMessageData<JobRequestMessage>(jobRequest))
+          if (message.GetMessageData(jobRequest))
           {
             OrchestrateJob(std::move(jobRequest));
           }
@@ -108,7 +108,7 @@ public:
         if (message.header.type == message_type::TaskResponse)
         {
           TaskResponseMessage taskResponse;
-          message.GetMessageData<TaskResponseMessage>(taskResponse);
+          message.GetMessageData(taskResponse);
           if (taskResponse.jobId == jobRequest.jobId)
           {
             tasksSize--;
