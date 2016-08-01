@@ -9,6 +9,9 @@
 #include <boost/filesystem/fstream.hpp>
 
 #include <boost/program_options.hpp>
+#include <boost/iostreams/copy.hpp>
+
+#include <process.hpp>
 
 namespace fs = boost::filesystem;
 namespace po = boost::program_options;
@@ -46,9 +49,9 @@ public:
     fs::remove_all(m_tmpPath);
   }
 
-  std::wstring GetPath() const
+  std::string GetPath() const
   {
-    return m_tmpPath.wstring();
+    return m_tmpPath.string();
   }
 
 private:
@@ -101,13 +104,13 @@ public:
           std::wcout << "Got job request from " << message.header.senderNode << std::endl;
           JobRequestMessage jobRequest;
 
-          if (message.GetMessageData<JobRequestMessage>(jobRequest))
+          if (message.GetMessageData(jobRequest))
           {
             DoJob(jobRequest);
           }
         }
       }
-      catch(const std::exception&)
+      catch(...)
       {
 
       }
@@ -138,6 +141,31 @@ public:
 
           TaskResponseMessage response;
           response.jobId = request.jobId;
+
+          if (!job.cmdLine.empty())
+          {
+            fs::path path {request.taskFile.name + L"_out"};
+
+            FileData fileData;
+            fileData.name = path.wstring();
+
+            Process process {job.cmdLine, jobFiles.GetPath(),
+            [&fileData](const char *bytes, size_t n)
+            {
+              std::copy(bytes, bytes+n, std::back_inserter(fileData.data));
+            }};
+            process.get_exit_status();
+            response.taskResults.push_back(fileData);
+            /*fs::ifstream stream {path, std::ios::in | std::ios::binary};
+            if (stream.is_open())
+            {
+              const auto size = fs::file_size(path);
+              fileData.data.resize(size);
+              stream.read(&fileData.data[0], size);
+              stream.close();
+            }*/
+          }
+
           m_resultsSocket.Send(response);
         }
       }

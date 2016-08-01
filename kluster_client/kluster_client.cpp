@@ -90,8 +90,26 @@ void KlusterClient::WaitForResults() throw()
   std::cout << "Waiting for reply" << std::endl;
   try
   {
-    NanoMessage busMessage = m_socket.Recv();
-    std::cout << "Got message type " << busMessage.header.type << std::endl;
+    NanoMessage message = m_socket.Recv();
+    std::cout << "Got message type " << message.header.type << std::endl;
+
+    if (message.header.type == message_type::JobResponse)
+    {
+      JobResponseMessage response;
+      message.GetMessageData(response);
+      for (const auto& resultFile : response.taskResults)
+      {
+        std::wcout << "Got result file " << resultFile.name << std::endl;
+        fs::path path {resultFile.name};
+        fs::ofstream stream {path, std::ios::out | std::ios::binary};
+        if (stream.is_open())
+        {
+          stream.write(&resultFile.data[0], resultFile.data.size());
+        }
+        stream.close();
+      }
+    }
+
     return;
   }
   catch(const std::exception&)

@@ -33,3 +33,13 @@ download_project(PROJ                googletest
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
+
+download_project(PROJ                tpl
+                 PREFIX              ${CMAKE_CURRENT_BINARY_DIR}
+                 GIT_REPOSITORY      https://github.com/variar/tiny-process-library.git
+                 GIT_TAG             master
+                 ${UPDATE_DISCONNECTED_IF_AVAILABLE}
+)
+
+add_subdirectory(${tpl_SOURCE_DIR} ${tpl_BINARY_DIR})
+target_include_directories(nanomsg PUBLIC ${tpl_SOURCE_DIR})
