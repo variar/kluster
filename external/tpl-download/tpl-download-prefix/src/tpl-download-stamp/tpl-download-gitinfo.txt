@@ -1,3 +1,0 @@
-repository='https://github.com/variar/tiny-process-library.git'
-module=''
-tag=''
