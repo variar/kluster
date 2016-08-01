@@ -36,9 +36,11 @@ include_directories(${Boost_INCLUDE_DIRS})
 include_directories("include")
 
 add_subdirectory(external)
+
 add_subdirectory(messages)
 add_subdirectory(transport)
+
 add_subdirectory(kluster_client)
 add_subdirectory(kluster_broker)
 add_subdirectory(kluster_worker)
-add_subdirectory(test)
+#add_subdirectory(test)
